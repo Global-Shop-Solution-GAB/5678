@@ -1,0 +1,485 @@
+Program.Sub.ScreenSU.Start
+Gui.F_ddlMaint..Create
+Gui.F_ddlMaint..Caption("DROP DOWN LIST MAINTENANCE")
+Gui.F_ddlMaint..Size(5520,9510)
+Gui.F_ddlMaint..MinX(3885)
+Gui.F_ddlMaint..MinY(7155)
+Gui.F_ddlMaint..Position(0,0)
+Gui.F_ddlMaint..BackColor(-2147483633)
+Gui.F_ddlMaint..MousePointer(0)
+Gui.F_ddlMaint..Event(UnLoad,Unload)
+Gui.F_ddlMaint..ContextMenuCreate("ctxStatGrid")
+Gui.F_ddlMaint..ContextMenuAddItem("ctxStatGrid","DELETE",0,"Delete Status")
+Gui.F_ddlMaint..ContextMenuSetItemEventHandler("ctxStatGrid","DELETE","MaintGridClick")
+Gui.F_ddlMaint.gsgcDdlValues.Create(GsGridControl)
+Gui.F_ddlMaint.gsgcDdlValues.Size(4875,7020)
+Gui.F_ddlMaint.gsgcDdlValues.Position(270,1335)
+Gui.F_ddlMaint.gsgcDdlValues.ContextMenuAttach("ctxStatGrid")
+Gui.F_ddlMaint.gsgcDdlValues.Anchor(15)
+Gui.F_ddlMaint.cmdMaintSave.Create(Button)
+Gui.F_ddlMaint.cmdMaintSave.Size(1590,375)
+Gui.F_ddlMaint.cmdMaintSave.Position(3510,8475)
+Gui.F_ddlMaint.cmdMaintSave.Caption("Save")
+Gui.F_ddlMaint.cmdMaintSave.Event(Click,MaintSave)
+Gui.F_ddlMaint.cmdMaintSave.Anchor(10)
+Gui.F_ddlMaint.cmdAdd.Create(Button)
+Gui.F_ddlMaint.cmdAdd.Size(1590,375)
+Gui.F_ddlMaint.cmdAdd.Position(3465,825)
+Gui.F_ddlMaint.cmdAdd.Caption("Add Value")
+Gui.F_ddlMaint.cmdAdd.Event(Click,AddValue)
+Gui.F_ddlMaint.cmdAdd.Anchor(9)
+Gui.F_ddlMaint.txtNewValue.Create(TextBox,"",True,3135,300,0,225,450,True,0,"Arial",8,-2147483643,1)
+Gui.F_ddlMaint.lbl1.Create(Label,"New Value",True,1935,255,0,255,195,True,0,"Arial",8,-2147483633,0)
+Gui.F_LineStatus..Create
+Gui.F_LineStatus..Caption("LINE STATUS")
+Gui.F_LineStatus..Size(4620,1995)
+Gui.F_LineStatus..MinX(4620)
+Gui.F_LineStatus..MinY(2025)
+Gui.F_LineStatus..Position(0,0)
+Gui.F_LineStatus..BackColor(-2147483633)
+Gui.F_LineStatus..MousePointer(0)
+Gui.F_LineStatus..Event(UnLoad,Unload)
+Gui.F_LineStatus.ddlLineStats.Create(DropDownList)
+Gui.F_LineStatus.ddlLineStats.Size(4065,330)
+Gui.F_LineStatus.ddlLineStats.Position(180,525)
+Gui.F_LineStatus.ddlLineStats.Anchor(13)
+Gui.F_LineStatus.lbl1.Create(Label,"Line Status",True,1935,255,0,225,255,True,0,"Arial",8,-2147483633,0)
+Gui.F_LineStatus.cmdStatusSave.Create(Button)
+Gui.F_LineStatus.cmdStatusSave.Size(1395,375)
+Gui.F_LineStatus.cmdStatusSave.Position(2775,960)
+Gui.F_LineStatus.cmdStatusSave.Caption("Save")
+Gui.F_LineStatus.cmdStatusSave.Event(Click,StatSave)
+Gui.F_LineStatus.cmdStatusSave.Anchor(9)
+Gui.F_Notes..Create
+Gui.F_Notes..Caption("SALES ORDER LINE NOTES")
+Gui.F_Notes..Size(8100,8205)
+Gui.F_Notes..MinX(4665)
+Gui.F_Notes..MinY(5655)
+Gui.F_Notes..Position(0,0)
+Gui.F_Notes..BackColor(-2147483633)
+Gui.F_Notes..MousePointer(0)
+Gui.F_Notes..Event(UnLoad,Unload)
+Gui.F_Notes.mltxNotes.Create(TextboxM)
+Gui.F_Notes.mltxNotes.Size(7530,6465)
+Gui.F_Notes.mltxNotes.Position(225,525)
+Gui.F_Notes.mltxNotes.Anchor(15)
+Gui.F_Notes.cmdSaveNotes.Create(Button)
+Gui.F_Notes.cmdSaveNotes.Size(1365,375)
+Gui.F_Notes.cmdSaveNotes.Position(6405,7140)
+Gui.F_Notes.cmdSaveNotes.Caption("Save")
+Gui.F_Notes.cmdSaveNotes.Event(Click,NotesSave)
+Gui.F_Notes.cmdSaveNotes.Anchor(10)
+Gui.F_Notes.lbl1.Create(Label,"Notes",True,1935,255,0,270,270,True,0,"Arial",8,-2147483633,0)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'This project was created for Fast Houston on 9/14/2019 by FEQ as piecework.
+'We are creating a 'line status' and 'line notes' process for the customer on Sales Order lines.
+'There will be a maintenance process, which will run from a custom menu in global shop. This will check that the user is in the User Security Group '' before they are able to make any modifications to the values for the line status.
+'There will be a process that runs from the Script 2 button on the Sales Order line screen, which will allow the user to select a value for the line status. This will be a drop down list that is created from the values added on the maintenance screen.
+'There will be a process that runs from teh Script 3 button on the Sales Order line screen, which will allow the user to update notes associated to that Sales Order Line.
+
+'This table uses custom pervasive tables GCG_5678_DDL_VALUES, GCG_5678_SOLnStat and GCG_5678_SOLnNotes
+
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+
+'We begin by checking the hook where this is being ran from.
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	F.Intrinsic.Control.Case(12010)
+		'If we are firing it from the screen populate screen, we want to change the labels of the Script buttons and add the textbox and label for the line status.
+		F.Intrinsic.Control.CallSub(ScreenMods)
+		
+	F.Intrinsic.Control.Case(12045)
+		'This is on the line change hook. we check to see if there is a value associated with the Sales Order line, and if so we populate it on the textbox.
+		F.Intrinsic.Control.CallSub(LineStatPop)
+		
+	F.Intrinsic.Control.Case(12420)
+		'This is if they click on the Script 2 button, We want to grab all available values from the maintenance screen, add them to the drop down list, and select a value if something has already been saved for it.
+		F.Intrinsic.Control.CallSub(StatScreenPop)
+		Gui.F_LineStatus..Show
+		
+	F.Intrinsic.Control.Case(12430)
+		'This is if they click on the Script 3 button, we want to populate all notes that are saved
+		F.Intrinsic.Control.CallSub(NotesScreenPop)
+		Gui.F_Notes..Show
+		
+	F.Intrinsic.Control.CaseElse
+		'This is for the maintenance screen, if it is being fired from the custom menu item.
+		F.Intrinsic.Control.CallSub(MaintPopuate)
+		Gui.F_ddlMaint..Show
+		
+F.Intrinsic.Control.EndSelect
+
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Unload.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.Unload.End
+
+Program.Sub.ScreenMods.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+
+'We are going to change the label of Script buttons 2 and 3, as well as making a textbox and label visible on the screen.
+'This is for the textbox that we will be using to populate the Line Status
+F.Intrinsic.Variable.SetProperty("GAB-TEXT-1", "PL", 18)
+F.Intrinsic.Variable.SetProperty("GAB-TEXT-1", "PT", 454)
+F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-TEXT-1, "LOCK", 1)
+F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-TEXT-1, "HIDE", 0)
+
+'This is for the label
+F.Intrinsic.Variable.SetProperty("GAB-LBL-1", "PL", 18)
+F.Intrinsic.Variable.SetProperty("GAB-LBL-1", "PT", 437)
+F.Intrinsic.UI.ChangeCallerProperty(V.Passed.GAB-LBL-1, "HIDE", 0)
+V.Passed.GAB-LBL-1.Set("Line Status:")
+
+'And the script 2 and 3 buttons labels, accordingly
+V.Passed.000141.Set("Line Status")
+V.Passed.000210.Set("Line Notes")
+
+'We may need to add something in here to check the security group of the user to gray out those buttons so they cannot use them.
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.ScreenMods.End
+
+Program.Sub.MaintPopuate.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+
+'We grab all available data from the datatable and populate the grid.
+F.ODBC.Connection!conx.OpenCompanyConnection
+
+F.Data.DataTable.CreateFromSQL("dtDdlScreen", "conx", "Select ROW_NO, STAT_VALUE from GCG_5678_DDL_Values", True)
+F.Data.DataTable.AddColumn("dtDdlScreen", "DELETE", "String", "N")
+F.Data.DataView.Create("dtDdlScreen", "dvDdlVals", 22, "[DELETE] = 'N'", "[ROW_NO] ASC")
+
+F.ODBC.Connection!conx.Close
+
+Gui.F_ddlMaint.gsgcDdlValues.AddGridviewFromDataview("gridVals", "dtDdlScreen", "dvDdlVals")
+
+Gui.F_ddlMaint.gsgcDdlValues.SetColumnProperty("gridVals", "DELETE", "Visible", False)
+Gui.F_ddlMaint.gsgcDdlValues.SetColumnProperty("gridVals", "ROW_NO", "Visible", False)
+
+Gui.F_ddlMaint.gsgcDdlValues.SetColumnProperty("gridVals", "STAT_VALUE", "AllowEdit", False)
+Gui.F_ddlMaint.gsgcDdlValues.SetColumnProperty("gridVals", "STAT_VALUE", "ReadOnly", True)
+Gui.F_ddlMaint.gsgcDdlValues.SetColumnProperty("gridVals", "STAT_VALUE", "Caption", "Line Status")
+Gui.F_ddlMaint.gsgcDdlValues.SetColumnProperty("gridVals", "STAT_VALUE", "HeaderHAlignment", "Center")
+
+Gui.F_ddlMaint.gsgcDdlValues.MainView("gridVals")
+
+Gui.F_ddlMaint.txtNewValue.Text("")
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.MaintPopuate.End
+
+Program.Sub.MaintGridClick.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+V.Local.sRows.Declare(String, "")
+V.Local.iChoc.Declare(Long, 0)
+
+F.Intrinsic.Control.SelectCase(V.Args.ItemName)
+	F.Intrinsic.Control.Case("DELETE")
+		Gui.F_ddlMaint.gsgcDdlValues.GetSelectedRows("gridVals", V.Local.sRows)
+		F.Intrinsic.Control.If(V.Local.sRows.Trim, <>, "")
+			F.Intrinsic.String.Split(V.Local.sRows, "*!*", V.Local.sRows)
+			F.Intrinsic.Control.For(V.Local.iChoc, V.Local.sRows.UBound, 0, -1)
+				F.Data.DataTable.SetValue("dtDdlScreen", V.Local.sRows(V.Local.iChoc), "DELETE", "Y")
+			F.Intrinsic.Control.Next(V.Local.iChoc)
+		F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.MaintGridClick.End
+
+Program.Sub.MaintSave.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+V.Local.sRows.Declare(String, "")
+V.Local.sSql.Declare(String, "")
+V.Local.iChoc.Declare(Long, 0)
+
+F.ODBC.Connection!conx.OpenCompanyConnection
+
+'If a line has a row number and a delete value of Y, we need to remove it from the database
+F.Data.DataView.Create("dtDdlScreen", "dvDelete", 22, "[DELETE] = 'Y' and [ROW_NO] <> '-1'", "")
+F.Intrinsic.Control.If(V.DataView.dtDdlScreen!dvDelete.RowCount, >, 0)
+	F.Data.DataView.ToString("dtDdlScreen", "dvDelete", "ROW_NO", "", "', '", V.Local.sRows)
+	F.Intrinsic.String.Build("Delete from GCG_5678_DDL_Values where ROW_NO in ('{0}')", V.Local.sRows, V.Local.sSql)
+	F.ODBC.Connection!conx.Execute(V.Local.sSql)
+F.Intrinsic.Control.EndIf
+F.Data.DataView.Close("dtDdlScreen", "dvDelete")
+
+'If a line does not have a row number and a delete value of N, we need to add it to the database
+F.Data.DataView.Create("dtDdlScreen", "dvSave", 22, "ROW_NO = '-1' and [DELETE] = 'N'", "")
+F.Intrinsic.Control.If(V.DataView.dtDdlScreen!dvSave.RowCount, >, 0)
+	F.Intrinsic.Control.For(V.Local.iChoc, 0, V.DataView.dtDdlScreen!dvSave.RowCount--, 1)
+		F.Intrinsic.String.Build("INSERT into GCG_5678_DDL_Values (STAT_VALUE) Values ('{0}')", V.DataView.dtDdlScreen!dvSave(V.Local.iChoc).STAT_VALUE!FieldValTrim, V.Local.sSql)
+		F.ODBC.Connection!conx.Execute(V.Local.sSql)
+	F.Intrinsic.Control.Next(V.Local.iChoc)
+F.Intrinsic.Control.EndIf
+
+'Close datatables and call recreate stuff.
+F.Data.DataView.Close("dtDdlScreen", "dvDdlVals")
+F.Data.DataTable.Close("dtDdlScreen")
+
+F.ODBC.Connection!conx.Close
+
+F.Intrinsic.Control.CallSub(MaintPopuate)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.MaintSave.End
+
+Program.Sub.LineStatPop.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+V.Local.sOrdNo.Declare(String, "")
+V.Local.sOrdLn.Declare(String, "")
+V.Local.sSql.Declare(String, "")
+V.Local.sRet.Declare(String, "")
+
+'If the Order-Line has a value for the Line Status, we want to populate that value in the textbox.
+F.Intrinsic.String.LPad(V.Passed.000060, "0", 7, V.Local.sOrdNo)
+F.Intrinsic.String.LPad(V.Passed.000051, "0", 3, V.Local.sOrdLn)
+
+F.ODBC.Connection!conx.OpenCompanyConnection
+F.Intrinsic.String.Build("Select TOP 1 LINE_STAT from GCG_5678_SOLnStat where ORDER_NO = '{0}' and RECORD_NO = '{1}' order by LAST_CHG_DT ASC", V.Local.sOrdNo, V.Local.sOrdLn, V.Local.sSql)
+F.ODBC.Connection!conx.ExecuteAndReturn(V.Local.sSql, V.Local.sRet)
+
+F.Intrinsic.Control.If(V.Local.sRet.Trim, <>, "")
+	V.Passed.GAB-TEXT-1.Set(V.Local.sRet)
+F.Intrinsic.Control.Else
+	V.Passed.GAB-TEXT-1.Set("")	
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!conx.Close
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.LineStatPop.End
+
+Program.Sub.StatScreenPop.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+V.Local.sOrdNo.Declare(String, "")
+V.Local.sOrdLn.Declare(String, "")
+V.Local.sSql.Declare(String, "")
+V.Local.sRet.Declare(String, "")
+V.Local.sFilter.Declare(String, "")
+V.Local.iChoc.Declare(Long, 0)
+
+F.ODBC.Connection!conx.OpenCompanyConnection
+
+F.Data.DataTable.CreateFromSQL("dtddlItems", "conx", "Select STAT_VALUE from GCG_5678_DDL_Values order by ROW_NO ASC", True)
+
+Gui.F_LineStatus.ddlLineStats.AddItem("")
+F.Intrinsic.Control.For(V.Local.iChoc, 0, V.DataTable.dtddlItems.RowCount--, 1)
+	Gui.F_LineStatus.ddlLineStats.AddItem(V.DataTable.dtddlItems(V.Local.iChoc).STAT_VALUE!FieldValTrim)
+F.Intrinsic.Control.Next(V.Local.iChoc)
+
+'Now we see if there is a value saved for the current Order Line.
+F.Intrinsic.String.LPad(V.Passed.000060, "0", 7, V.Local.sOrdNo)
+F.Intrinsic.String.LPad(V.Passed.000051, "0", 3, V.Local.sOrdLn)
+
+F.Intrinsic.String.Build("Select TOP 1 LINE_STAT from GCG_5678_SOLnStat where ORDER_NO = '{0}' and RECORD_NO = '{1}' order by LAST_CHG_DT ASC", V.Local.sOrdNo, V.Local.sOrdLn, V.Local.sSql)
+F.ODBC.Connection!conx.ExecuteAndReturn(V.Local.sSql, V.Local.sRet)
+
+F.Intrinsic.Control.If(V.Local.sRet.Trim, <>, "")
+	F.Data.DataView.Create("dtddlItems", "dvCheck", 22, V.Local.sFilter, "")
+	F.Intrinsic.Control.If(V.DataView.dtddlItems!dvCheck.RowCount, "=", 0)
+		Gui.F_LineStatus.ddlLineStats.AddItem(V.Local.sRet.Trim)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataView.Close("dtddlItems", "dvCheck")
+	Gui.F_LineStatus.ddlLineStats.Text(V.Local.sRet.Trim)
+F.Intrinsic.Control.Else
+	Gui.F_LineStatus.ddlLineStats.Text("")
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.Close("dtddlItems")
+
+F.ODBC.Connection!conx.Close
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.StatScreenPop.End
+
+Program.Sub.StatSave.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+V.Local.sOrdNo.Declare(String, "")
+V.Local.sOrdLn.Declare(String, "")
+V.Local.sSql.Declare(String, "")
+
+F.ODBC.Connection!conx.OpenCompanyConnection
+
+'Now we see if there is a value saved for the current Order Line.
+F.Intrinsic.String.LPad(V.Passed.000060, "0", 7, V.Local.sOrdNo)
+F.Intrinsic.String.LPad(V.Passed.000051, "0", 3, V.Local.sOrdLn)
+
+F.Intrinsic.String.Build("Select TOP 1 ORDER_NO, RECORD_NO, LINE_STAT, CREATE_USR, CREATE_DT, LAST_CHG_USR, LAST_CHG_DT from GCG_5678_SOLnStat where ORDER_NO = '{0}' and RECORD_NO = '{1}' order by LAST_CHG_DT ASC", V.Local.sOrdNo, V.Local.sOrdLn, V.Local.sSql)
+F.ODBC.Connection!conx.OpenLocalRecordsetRW("rstStatSave", V.Local.sSql)
+F.Intrinsic.Control.If(V.ODBC.conx!rstStatSave.EOF, =, True)
+	F.ODBC.conx!rstStatSave.AddNew
+	F.ODBC.conx!rstStatSave.Set!ORDER_NO(V.Local.sOrdNo)
+	F.ODBC.conx!rstStatSave.Set!RECORD_NO(V.Local.sOrdLn)
+	F.ODBC.conx!rstStatSave.Set!CREATE_USR(V.Caller.User)
+	F.ODBC.conx!rstStatSave.Set!CREATE_DT(V.Ambient.Date.PSQLFriendly)
+F.Intrinsic.Control.EndIf
+F.ODBC.conx!rstStatSave.Set!LAST_CHG_USR(V.Caller.User)
+F.ODBC.conx!rstStatSave.Set!LAST_CHG_DT(V.Ambient.Date.PSQLFriendly)
+F.ODBC.conx!rstStatSave.Set!LINE_STAT(V.Screen.F_LineStatus!ddlLineStats.Value.Trim)
+F.ODBC.conx!rstStatSave.Update
+
+F.ODBC.conx!rstStatSave.Close
+F.ODBC.Connection!conx.Close
+
+
+F.Intrinsic.Control.CallSub(LineStatPop)
+F.Intrinsic.Control.CallSub(Unload)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.StatSave.End
+
+Program.Sub.NotesScreenPop.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+V.Local.sOrdNo.Declare(String, "")
+V.Local.sOrdLn.Declare(String, "")
+V.Local.sSql.Declare(String, "")
+V.Local.sRet.Declare(String, "")
+
+F.ODBC.Connection!conx.OpenCompanyConnection
+
+'Now we see if there is a value saved for the current Order Line.
+F.Intrinsic.String.LPad(V.Passed.000060, "0", 7, V.Local.sOrdNo)
+F.Intrinsic.String.LPad(V.Passed.000051, "0", 3, V.Local.sOrdLn)
+
+F.Intrinsic.String.Build("Select TOP 1 Notes from GCG_5678_SOLnNotes where ORDER_NO = '{0}' and RECORD_NO = '{1}' order by LAST_CHG_DT ASC", V.Local.sOrdNo, V.Local.sOrdLn, V.Local.sSql)
+F.ODBC.Connection!conx.ExecuteAndReturn(V.Local.sSql, V.Local.sRet)
+
+Gui.F_Notes.mltxNotes.Text(V.Local.sRet)
+
+F.ODBC.Connection!conx.Close
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.NotesScreenPop.End
+
+Program.Sub.NotesSave.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+V.Local.sOrdNo.Declare(String, "")
+V.Local.sOrdLn.Declare(String, "")
+V.Local.sSql.Declare(String, "")
+V.Local.sUserName.Declare(String, "")
+V.Local.sNotes.Declare(String, "")
+
+F.ODBC.Connection!conx.OpenCompanyConnection
+
+'Now we see if there is a value saved for the current Order Line.
+F.Intrinsic.String.LPad(V.Passed.000060, "0", 7, V.Local.sOrdNo)
+F.Intrinsic.String.LPad(V.Passed.000051, "0", 3, V.Local.sOrdLn)
+
+F.Global.Security.GetFullName(V.Caller.User, V.Local.sUserName)
+
+F.Intrinsic.String.Build("{0}{1}-{2} on {3}.", V.Screen.F_Notes!mltxNotes.Text, V.Ambient.NewLine, V.Local.sUserName.Trim, V.Ambient.Date, V.Local.sNotes)
+
+F.Intrinsic.String.Build("Select Top 1 ORDER_NO, RECORD_NO, Notes, CREATE_USR, CREATE_DT, LAST_CHG_USR, LAST_CHG_DT from GCG_5678_SOLnNotes where ORDER_NO = '{0}' and RECORD_NO = '{1}' order by LAST_CHG_DT ASC", V.Local.sOrdNo, V.Local.sOrdLn, V.Local.sSql)
+F.Data.DataTable.CreateFromSQL("dtNotes", "conx", V.Local.sSql, True)
+
+F.Intrinsic.Control.If(V.DataTable.dtNotes.RowCount, =, 0)
+	F.Data.DataTable.AddRow("dtNotes", "ORDER_NO", V.Local.sOrdNo, "RECORD_NO", V.Local.sOrdLn, "Notes", V.Local.sNotes, "CREATE_USR", V.Caller.User, "CREATE_DT", V.Ambient.Date, "LAST_CHG_USR", V.Caller.User, "LAST_CHG_DT", V.Ambient.Date)
+F.Intrinsic.Control.Else
+	F.Data.DataTable.SetValue("dtNotes", 0, "Notes", V.Local.sNotes, "LAST_CHG_USR", V.Caller.User, "LAST_CHG_DT", V.Ambient.Date)
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.SaveToDB("dtNotes", "conx", "GCG_5678_SOLnNotes", "ORDER_NO*!*RECORD_NO")
+F.Data.DataTable.Close("dtNotes")
+
+F.ODBC.Connection!conx.Close
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.NotesSave.End
+
+Program.Sub.AddValue.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare(String, "")
+V.Local.sFilter.Declare(String, "")
+
+Function.Intrinsic.Debug.InvokeDebugger
+Function.Intrinsic.Debug.Stop
+
+F.Intrinsic.Control.If(V.Screen.F_ddlMaint!txtNewValue.Text, <>, "")
+	'Check to see if value is already in table
+	F.Intrinsic.String.Build("[STAT_VALUE] = '{0}'", V.Screen.F_ddlMaint!txtNewValue.Text.Trim, V.Local.sFilter)
+	F.Data.DataView.Create("dtDdlScreen", "dvDupliCheck", 22, V.Local.sFilter, "")
+	F.Intrinsic.Control.If(V.DataView.dtDdlScreen!dvDupliCheck.RowCount, "=", 0)
+		'If Value is not, add it
+		F.Data.DataTable.AddRow("dtDdlScreen", "STAT_VALUE", V.Screen.F_ddlMaint!txtNewValue.Text, "ROW_NO", -1)
+	F.Intrinsic.Control.Else
+		'Value could be there but flagged as deleted, so change the flag to make it visible
+		F.Data.DataView.SetValue("dtDdlScreen", "dvDupliCheck", -1, "DELETE", "N")
+	F.Intrinsic.Control.EndIf
+	F.Data.DataView.Close("dtDdlScreen", "dvDupliCheck")
+F.Intrinsic.Control.EndIf
+
+Gui.F_ddlMaint.txtNewValue.Text("")
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndTry
+Program.Sub.AddValue.End
